@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chart.js Bar Chart - Rounded</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem;
+      background: #f5f5f5;
+    }
+
+    .chart-container {
+      background: white;
+      border-radius: 8px;
+      padding: 1.5rem;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      width: 700px;
+      max-width: 100%;
+    }
+
+    .actions {
+      margin-top: 1rem;
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    button {
+      padding: 0.5rem 1.2rem;
+      border: none;
+      border-radius: 4px;
+      background: #4361ee;
+      color: white;
+      cursor: pointer;
+      font-size: 0.9rem;
+    }
+
+    button:hover {
+      background: #3a56d4;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="chart-container">
+    <canvas id="myChart"></canvas>
+    <div class="actions" id="actions"></div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    // ---- Utils ----
+    const CHART_COLORS = {
+      red: 'rgb(255, 99, 132)',
+      blue: 'rgb(54, 162, 235)',
+      orange: 'rgb(255, 159, 64)',
+      green: 'rgb(75, 192, 192)',
+      purple: 'rgb(153, 102, 255)',
+      grey: 'rgb(201, 203, 207)',
+      yellow: 'rgb(255, 205, 86)',
+    };
+
+    const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July',
+      'August', 'September', 'October', 'November', 'December'];
+
+    const Utils = {
+      CHART_COLORS,
+      months({ count }) {
+        return MONTHS.slice(0, count);
+      },
+      numbers({ count, min, max }) {
+        return Array.from({ length: count }, () =>
+          Math.round(min + Math.random() * (max - min))
+        );
+      },
+      transparentize(color, opacity) {
+        // color is 'rgb(r, g, b)' — convert to rgba
+        return color.replace('rgb(', 'rgba(').replace(')', `, ${1 - opacity})`);
+      },
+    };
+
+    // ---- Setup ----
+    const DATA_COUNT = 7;
+    const NUMBER_CFG = { count: DATA_COUNT, min: -100, max: 100 };
+
+    const labels = Utils.months({ count: 7 });
+    const data = {
+      labels: labels,
+      datasets: [
+        {
+          label: 'Fully Rounded', //
+          data: Utils.numbers(NUMBER_CFG), //
+          borderColor: Utils.CHART_COLORS.red, //
+          backgroundColor: Utils.transparentize(Utils.CHART_COLORS.red, 0.5), //
+          borderWidth: 2, //
+          borderRadius: Number.MAX_VALUE, //
+          borderSkipped: false, //
+        },
+        {
+          label: 'Small Radius',
+          data: Utils.numbers(NUMBER_CFG),
+          borderColor: Utils.CHART_COLORS.blue,
+          backgroundColor: Utils.transparentize(Utils.CHART_COLORS.blue, 0.5),
+          borderWidth: 2,
+          borderRadius: 5,
+          borderSkipped: false,
+        },
+        {
+          label: 'Top Radius',
+          data: Utils.numbers(NUMBER_CFG),
+          borderColor: Utils.CHART_COLORS.orange,
+          backgroundColor: Utils.transparentize(Utils.CHART_COLORS.orange, 0.5),
+          borderWidth: 2,
+          borderRadius: { topLeft: 10, topRight: 10 },
+          borderSkipped: false,
+        },
+        {
+          label: 'Bottom Radius',
+          data: Utils.numbers(NUMBER_CFG),
+          borderColor: Utils.CHART_COLORS.green,
+          backgroundColor: Utils.transparentize(Utils.CHART_COLORS.green, 0.5),
+          borderWidth: 2,
+          borderRadius: { bottomLeft: 10, bottomRight: 10 },
+          borderSkipped: false,
+        },
+      ]
+    };
+
+    // ---- Config ----
+    const config = {
+      type: 'bar',
+      data: data,
+      options: {
+        responsive: true,
+        plugins: {
+          legend: {
+            position: 'top',
+          },
+          title: {
+            display: true,
+            text: 'Chart.js Bar Chart'
+          }
+        }
+      },
+    };
+
+    // ---- Render ----
+    const chart = new Chart(document.getElementById('myChart'), config);
+
+    // ---- Actions ----
+    const actions = [
+      {
+        name: 'Randomize',
+        handler(chart) {
+          chart.data.datasets.forEach(dataset => {
+            dataset.data = Utils.numbers({ count: chart.data.labels.length, min: -100, max: 100 });
+          });
+          chart.update();
+        }
+      },
+    ];
+
+    // Render action buttons
+    const actionsEl = document.getElementById('actions');
+    actions.forEach(action => {
+      const btn = document.createElement('button');
+      btn.textContent = action.name;
+      btn.addEventListener('click', () => action.handler(chart));
+      actionsEl.appendChild(btn);
+    });
+  </script>
+
+</body>
+
+</html>

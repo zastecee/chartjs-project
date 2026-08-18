@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chart.js Bar Chart - Rounded</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem;
+      background: #f5f5f5;
+    }
+
+    .chart-container {
+      background: white;
+      border-radius: 8px;
+      padding: 1.5rem;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      width: 1000px;
+      max-width: 100%;
+    }
+
+    .actions {
+      margin-top: 1rem;
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    button {
+      padding: 0.5rem 1.2rem;
+      border: none;
+      border-radius: 4px;
+      background: #4361ee;
+      color: white;
+      cursor: pointer;
+      font-size: 0.9rem;
+    }
+
+    button:hover {
+      background: #3a56d4;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="chart-container">
+    <canvas id="myChart"></canvas>
+    <div class="actions" id="actions"></div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <script>
+
+    const CHART_COLORS = {
+      red: 'rgb(255, 99, 132)',
+      blue: 'rgb(54, 162, 235)',
+      orange: 'rgb(255, 159, 64)',
+      green: 'rgb(75, 192, 192)',
+      purple: 'rgb(153, 102, 255)',
+      grey: 'rgb(201, 203, 207)',
+      yellow: 'rgb(255, 205, 86)',
+    };
+
+    const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July',
+      'August', 'September', 'October', 'November', 'December'];
+
+    const Utils = {
+      CHART_COLORS,
+      months({ count }) {
+        return MONTHS.slice(0, count);
+      },
+      numbers({ count, min, max }) {
+        return Array.from({ length: count }, () =>
+          Math.round(min + Math.random() * (max - min))
+        );
+      },
+      transparentize(color, opacity) {
+        // color is 'rgb(r, g, b)' — convert to rgba
+        return color.replace('rgb(', 'rgba(').replace(')', `, ${1 - opacity})`);
+      },
+    }
+
+    const data = {
+      labels: Utils.months({ count: 7 }),
+      datasets: [
+        {
+          label: 'Fully Rounded',
+          data: Utils.numbers({ count: 7, min: -100, max: 100 }),
+          borderColor: Utils.CHART_COLORS.red,
+          borderWidth: 2,
+          borderRadius: Number.MAX_VALUE,
+          borderSkipped: false,
+          backgroundColor: Utils.transparentize(Utils.CHART_COLORS.red, 0.5),
+        },
+        {
+          label: 'Small Radius',
+          data: Utils.numbers({ count: 7, min: -100, max: 100 }),
+          borderColor: Utils.CHART_COLORS.blue,
+          borderWidth: 2,
+          borderRadius: 5,
+          borderSkipped: false,
+          backgroundColor: Utils.transparentize(Utils.CHART_COLORS.blue, 0.5),
+        },
+        {
+          label: 'Top Radius',
+          data: Utils.numbers({ count: 7, min: -100, max: 100 }),
+          borderColor: Utils.CHART_COLORS.green,
+          borderWidth: 2,
+          borderRadius: { topLeft: Number.MAX_VALUE, topRight: Number.MAX_VALUE, bottomLeft: 0, bottomRight: 0 },
+          borderSkipped: false,
+          backgroundColor: Utils.transparentize(Utils.CHART_COLORS.green, 0.5),
+        },
+        {
+          label: 'Bottom Radius',
+          data: Utils.numbers({ count: 7, min: -100, max: 100 }),
+          borderColor: Utils.CHART_COLORS.orange,
+          borderWidth: 2,
+          borderRadius: { topLeft: 0, topRight: 0, bottomLeft: Number.MAX_VALUE, bottomRight: Number.MAX_VALUE },
+          borderSkipped: false,
+          backgroundColor: Utils.transparentize(Utils.CHART_COLORS.orange, 0.5),
+        },
+        {
+          label: 'Mixed Radius',
+          data: Utils.numbers({ count: 7, min: -100, max: 100 }),
+          borderColor: Utils.CHART_COLORS.purple,
+          borderWidth: 2,
+          borderRadius: { topLeft: Number.MAX_VALUE, topRight: 0, bottomLeft: 0, bottomRight: Number.MAX_VALUE },
+          borderSkipped: false,
+          backgroundColor: Utils.transparentize(Utils.CHART_COLORS.purple, 0.5),
+        }
+      ]
+    }
+
+    const config = {
+      type: "bar",
+      data: data,
+      options: {
+        responsive: true,
+        plugins: {
+          legend: {
+            position: 'top',
+          },
+          title: {
+            display: true,
+            text: 'Chart.js Bar Chart'
+          }
+        }
+      }
+    }
+
+    const chart = new Chart(document.getElementById("myChart"), config)
+
+
+  </script>
+
+</body>
+
+</html>
