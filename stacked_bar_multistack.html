@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chart.js Bar Chart - Multi Stack</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: sans-serif;
+      background: #eef2f7;
+      display: flex;
+      justify-content: center;
+      padding: 2rem 1rem;
+    }
+
+    .card {
+      width: 920px;
+      max-width: 100%;
+      background: #ffffff;
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+      padding: 1.25rem;
+    }
+
+    .chart-wrap {
+      position: relative;
+      height: 460px;
+    }
+
+    .actions {
+      margin-top: 1rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.6rem;
+    }
+
+    button {
+      border: 0;
+      border-radius: 8px;
+      padding: 0.55rem 0.95rem;
+      cursor: pointer;
+      background: #0f172a;
+      color: #ffffff;
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+
+    button:hover {
+      background: #1e293b;
+    }
+  </style>
+</head>
+
+<body>
+  <section class="card">
+    <div class="chart-wrap">
+      <canvas id="multiStackedBarChart"></canvas>
+    </div>
+    <div class="actions" id="actions"></div>
+  </section>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    const CHART_COLORS = {
+      red: 'rgb(255, 99, 132)',
+      blue: 'rgb(54, 162, 235)',
+      green: 'rgb(75, 192, 192)'
+    };
+
+    const MONTHS = [
+      'January', 'February', 'March', 'April', 'May', 'June',
+      'July', 'August', 'September', 'October', 'November', 'December'
+    ];
+
+    const Utils = {
+      CHART_COLORS,
+      months({ count }) {
+        return MONTHS.slice(0, count);
+      },
+      numbers({ count, min, max }) {
+        return Array.from({ length: count }, () => this.rand(min, max));
+      },
+      rand(min, max) {
+        return Math.round(min + Math.random() * (max - min));
+      }
+    };
+
+    const DATA_COUNT = 7;
+    const NUMBER_CFG = { count: DATA_COUNT, min: -100, max: 100 };
+
+    const labels = Utils.months({ count: 7 });
+    const data = {
+      labels: labels,
+      datasets: [
+        {
+          label: 'Dataset 1',
+          data: Utils.numbers(NUMBER_CFG),
+          backgroundColor: Utils.CHART_COLORS.red,
+          stack: 'Stack 0',
+        },
+        {
+          label: 'Dataset 2',
+          data: Utils.numbers(NUMBER_CFG),
+          backgroundColor: Utils.CHART_COLORS.blue,
+          stack: 'Stack 0',
+        },
+        {
+          label: 'Dataset 3',
+          data: Utils.numbers(NUMBER_CFG),
+          backgroundColor: Utils.CHART_COLORS.green,
+          stack: 'Stack 1',
+        },
+      ]
+    };
+
+    const config = {
+      type: 'bar',
+      data: data,
+      options: {
+        plugins: {
+          title: {
+            display: true,
+            text: 'Chart.js Bar Chart - Stacked'
+          },
+        },
+        responsive: true,
+        interaction: {
+          intersect: false,
+        },
+        scales: {
+          x: {
+            stacked: true,
+          },
+          y: {
+            stacked: true
+          }
+        }
+      }
+    };
+
+    const actions = [
+      {
+        name: 'Randomize',
+        handler(chart) {
+          chart.data.datasets.forEach(dataset => {
+            dataset.data = Utils.numbers({ count: chart.data.labels.length, min: -100, max: 100 });
+          });
+          chart.update();
+        }
+      },
+    ];
+
+    const chart = new Chart(document.getElementById('multiStackedBarChart'), config);
+
+    const actionsEl = document.getElementById('actions');
+    actions.forEach(action => {
+      const button = document.createElement('button');
+      button.textContent = action.name;
+      button.addEventListener('click', () => action.handler(chart));
+      actionsEl.appendChild(button);
+    });
+  </script>
+</body>
+
+</html>

@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="pt">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Aplicacao Multi-Stack: Receita por Regiao e Tipo de Cliente</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: sans-serif;
+      background: #eef2f7;
+      display: flex;
+      justify-content: center;
+      padding: 2rem 1rem;
+      color: #111827;
+    }
+
+    .card {
+      width: 980px;
+      max-width: 100%;
+      background: #ffffff;
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+      padding: 1.25rem;
+    }
+
+    h1 {
+      margin: 0 0 0.25rem;
+      font-size: 1.2rem;
+    }
+
+    p {
+      margin: 0 0 1rem;
+      line-height: 1.45;
+      color: #374151;
+    }
+
+    .chart-wrap {
+      position: relative;
+      height: 460px;
+    }
+
+    .insights {
+      margin-top: 1rem;
+      padding: 0.85rem 1rem;
+      border-radius: 10px;
+      background: #f8fafc;
+      border: 1px solid #e5e7eb;
+      font-size: 0.95rem;
+      line-height: 1.45;
+    }
+
+    .actions {
+      margin-top: 1rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.6rem;
+    }
+
+    button {
+      border: 0;
+      border-radius: 8px;
+      padding: 0.55rem 0.95rem;
+      cursor: pointer;
+      background: #0f172a;
+      color: #ffffff;
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+
+    button:hover {
+      background: #1e293b;
+    }
+  </style>
+</head>
+
+<body>
+  <section class="card">
+    <h1>Receita Trimestral por Regiao e Tipo de Cliente</h1>
+    <p>
+      Cada trimestre mostra duas pilhas: <strong>Stack 0</strong> (clientes SMB) e <strong>Stack 1</strong> (clientes
+      Enterprise).
+      Dentro de cada pilha, as cores separam as regioes Norte e Sul.
+    </p>
+
+    <div class="chart-wrap">
+      <canvas id="multiStackApplicationChart"></canvas>
+    </div>
+
+    <div class="actions" id="actions"></div>
+    <div class="insights" id="insights"></div>
+  </section>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    const DATA_COUNT = 4;
+    const labels = ['Q1', 'Q2', 'Q3', 'Q4'];
+
+    const Utils = {
+      rand(min, max) {
+        return Math.round(min + Math.random() * (max - min));
+      },
+      numbers({ count, min, max }) {
+        return Array.from({ length: count }, () => this.rand(min, max));
+      }
+    };
+
+    const data = {
+      labels,
+      datasets: [
+        {
+          label: 'Norte - SMB',
+          data: [42, 45, 51, 58],
+          backgroundColor: 'rgb(54, 162, 235)',
+          stack: 'Stack 0',
+        },
+        {
+          label: 'Sul - SMB',
+          data: [31, 35, 33, 41],
+          backgroundColor: 'rgb(75, 192, 192)',
+          stack: 'Stack 0',
+        },
+        {
+          label: 'Norte - Enterprise',
+          data: [55, 60, 67, 73],
+          backgroundColor: 'rgb(255, 99, 132)',
+          stack: 'Stack 1',
+        },
+        {
+          label: 'Sul - Enterprise',
+          data: [48, 49, 54, 62],
+          backgroundColor: 'rgb(255, 159, 64)',
+          stack: 'Stack 1',
+        },
+      ]
+    };
+
+    const config = {
+      type: 'bar',
+      data,
+      options: {
+        responsive: true,
+        interaction: {
+          intersect: false,
+        },
+        plugins: {
+          title: {
+            display: true,
+            text: 'Aplicacao de Multi-Stack em Receita B2B (milhares de EUR)'
+          },
+          legend: {
+            position: 'top'
+          },
+          tooltip: {
+            callbacks: {
+              footer(context) {
+                const total = context.reduce((sum, item) => sum + item.parsed.y, 0);
+                return `Total no periodo: ${total} mil EUR`;
+              }
+            }
+          }
+        },
+        scales: {
+          x: {
+            stacked: true,
+          },
+          y: {
+            stacked: true,
+            title: {
+              display: true,
+              text: 'Receita (milhares de EUR)'
+            }
+          }
+        }
+      }
+    };
+
+    const actions = [
+      {
+        name: 'Randomize',
+        handler(chart) {
+          chart.data.datasets.forEach(dataset => {
+            dataset.data = Utils.numbers({ count: DATA_COUNT, min: 25, max: 80 });
+          });
+          chart.update();
+          renderInsights(chart);
+        }
+      },
+      {
+        name: 'Reset Dados',
+        handler(chart) {
+          chart.data.datasets[0].data = [42, 45, 51, 58];
+          chart.data.datasets[1].data = [31, 35, 33, 41];
+          chart.data.datasets[2].data = [55, 60, 67, 73];
+          chart.data.datasets[3].data = [48, 49, 54, 62];
+          chart.update();
+          renderInsights(chart);
+        }
+      }
+    ];
+
+    function sumByQuarter(chartData, quarterIndex) {
+      return chartData.datasets.reduce((sum, dataset) => sum + dataset.data[quarterIndex], 0);
+    }
+
+    function sumByStack(chartData, stackName) {
+      return chartData.datasets
+        .filter(dataset => dataset.stack === stackName)
+        .reduce((sum, dataset) => {
+          return sum + dataset.data.reduce((acc, value) => acc + value, 0);
+        }, 0);
+    }
+
+    function renderInsights(chart) {
+      const totals = chart.data.labels.map((_, i) => sumByQuarter(chart.data, i));
+      const bestIndex = totals.indexOf(Math.max(...totals));
+
+      const smbTotal = sumByStack(chart.data, 'Stack 0');
+      const enterpriseTotal = sumByStack(chart.data, 'Stack 1');
+
+      const insightsEl = document.getElementById('insights');
+      insightsEl.innerHTML =
+        `Melhor trimestre: <strong>${chart.data.labels[bestIndex]}</strong> (${totals[bestIndex]} mil EUR). ` +
+        `Acumulado SMB (Stack 0): <strong>${smbTotal}</strong> mil EUR. ` +
+        `Acumulado Enterprise (Stack 1): <strong>${enterpriseTotal}</strong> mil EUR.`;
+    }
+
+    const chart = new Chart(document.getElementById('multiStackApplicationChart'), config);
+
+    const actionsEl = document.getElementById('actions');
+    actions.forEach(action => {
+      const button = document.createElement('button');
+      button.textContent = action.name;
+      button.addEventListener('click', () => action.handler(chart));
+      actionsEl.appendChild(button);
+    });
+
+    renderInsights(chart);
+  </script>
+</body>
+
+</html>

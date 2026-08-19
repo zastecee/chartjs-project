@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chart.js Floating Bar Chart</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: sans-serif;
+      background: #f3f4f6;
+      display: flex;
+      justify-content: center;
+      padding: 2rem 1rem;
+    }
+
+    .card {
+      width: 860px;
+      max-width: 100%;
+      background: #ffffff;
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+      padding: 1.25rem;
+    }
+
+    .chart-wrap {
+      position: relative;
+      height: 420px;
+    }
+
+    .actions {
+      margin-top: 1rem;
+      display: flex;
+      gap: 0.6rem;
+    }
+
+    button {
+      border: 0;
+      border-radius: 8px;
+      padding: 0.6rem 1rem;
+      cursor: pointer;
+      background: #0f172a;
+      color: #ffffff;
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+
+    button:hover {
+      background: #1e293b;
+    }
+  </style>
+</head>
+
+
+<body>
+  <section class="card">
+    <div class="chart-wrap">
+      <canvas id="floatingBarChart"></canvas>
+    </div>
+    <div class="actions" id="actions"></div>
+  </section>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+
+  <script>
+    const CHART_COLORS = {
+      red: 'rgb(255, 99, 132)',
+      blue: 'rgb(54, 162, 235)',
+      green: 'rgb(75, 192, 192)',
+      orange: 'rgb(255, 159, 64)',
+      yellow: 'rgb(255, 205, 86)'
+    };
+
+    const MONTHS = [
+      'January', 'February', 'March', 'April', 'May', 'June',
+      'July', 'August', 'September', 'October', 'November', 'December'
+    ];
+
+    const Utils = {
+      CHART_COLORS,
+      months({ count }) {
+        return MONTHS.slice(0, count);
+      },
+      rand(min, max) {
+        return Math.round(min + Math.random() * (max - min));
+      }
+    };
+
+    const DATA_COUNT = 7;
+    const NUMBER_CFG = { count: DATA_COUNT, min: -100, max: 100 };
+
+    const labels = Utils.months({ count: 7 });
+
+    console.log(JSON.stringify(labels.map(() => {
+      return [Utils.rand(NUMBER_CFG.min, NUMBER_CFG.max), Utils.rand(NUMBER_CFG.min, NUMBER_CFG.max)];
+    }), null, 2));
+
+    const data = {
+      labels: labels,
+      datasets: [
+        {
+          label: 'Dataset 1',
+          data: []
+        }
+      ]
+    }
+  </script>
+</body>
+
+</html>

@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="pt">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Exemplo: Vendas Mensais por Canal</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: sans-serif;
+      background: #eef2f7;
+      display: flex;
+      justify-content: center;
+      padding: 2rem 1rem;
+    }
+
+    .card {
+      width: 920px;
+      max-width: 100%;
+      background: #ffffff;
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+      padding: 1.25rem;
+    }
+
+    .chart-wrap {
+      position: relative;
+      height: 460px;
+    }
+
+    .summary {
+      margin-top: 1rem;
+      color: #1f2937;
+      font-size: 0.95rem;
+      line-height: 1.4;
+    }
+  </style>
+</head>
+
+<body>
+  <section class="card">
+    <div class="chart-wrap">
+      <canvas id="salesStackedChart"></canvas>
+    </div>
+    <p class="summary" id="summary"></p>
+  </section>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    const labels = ['Janeiro', 'Fevereiro', 'Marco', 'Abril', 'Maio', 'Junho', 'Julho'];
+
+    const data = {
+      labels,
+      datasets: [
+        {
+          label: 'Loja Fisica',
+          data: [70, 68, 74, 72, 78, 81, 85],
+          backgroundColor: 'rgb(54, 162, 235)',
+        },
+        {
+          label: 'Online',
+          data: [50, 55, 58, 61, 67, 70, 73],
+          backgroundColor: 'rgb(255, 99, 132)',
+        },
+        {
+          label: 'Revendedores',
+          data: [20, 18, 22, 24, 26, 28, 30],
+          backgroundColor: 'rgb(75, 192, 192)',
+        }
+      ]
+    };
+
+    const config = {
+      type: 'bar',
+      data,
+      options: {
+        responsive: true,
+        plugins: {
+          title: {
+            display: true,
+            text: 'Vendas Mensais por Canal (em milhares de EUR)'
+          },
+          legend: {
+            position: 'top'
+          },
+          tooltip: {
+            callbacks: {
+              footer(context) {
+                const total = context.reduce((acc, item) => acc + item.parsed.y, 0);
+                return `Total do mes: ${total} mil EUR`;
+              }
+            }
+          }
+        },
+        scales: {
+          x: {
+            stacked: true,
+          },
+          y: {
+            stacked: true,
+            title: {
+              display: true,
+              text: 'Milhares de EUR'
+            }
+          }
+        }
+      }
+    };
+
+    const chart = new Chart(document.getElementById('salesStackedChart'), config);
+
+    const monthlyTotals = labels.map((_, index) => {
+      return data.datasets.reduce((sum, dataset) => sum + dataset.data[index], 0);
+    });
+
+    const bestMonthIndex = monthlyTotals.indexOf(Math.max(...monthlyTotals));
+    const summaryEl = document.getElementById('summary');
+    summaryEl.textContent = `Melhor mes: ${labels[bestMonthIndex]} (${monthlyTotals[bestMonthIndex]} mil EUR no total).`;
+  </script>
+</body>
+
+</html>
