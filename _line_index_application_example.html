@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="pt">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Aplicacao: Linha com interaction mode index</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: sans-serif;
+      background: #eef2f7;
+      display: flex;
+      justify-content: center;
+      padding: 2rem 1rem;
+      color: #111827;
+    }
+
+    .card {
+      width: 980px;
+      max-width: 100%;
+      background: #ffffff;
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+      padding: 1.25rem;
+    }
+
+    h1 {
+      margin: 0 0 0.25rem;
+      font-size: 1.2rem;
+    }
+
+    p {
+      margin: 0 0 1rem;
+      line-height: 1.45;
+      color: #374151;
+    }
+
+    .chart-wrap {
+      position: relative;
+      height: 460px;
+    }
+
+    .note {
+      margin-top: 1rem;
+      padding: 0.85rem 1rem;
+      border-radius: 10px;
+      background: #f8fafc;
+      border: 1px solid #e5e7eb;
+      font-size: 0.95rem;
+      line-height: 1.45;
+      color: #1f2937;
+    }
+
+    .actions {
+      margin-top: 1rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.6rem;
+    }
+
+    button {
+      border: 0;
+      border-radius: 8px;
+      padding: 0.55rem 0.95rem;
+      cursor: pointer;
+      background: #0f172a;
+      color: #ffffff;
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+
+    button:hover {
+      background: #1e293b;
+    }
+  </style>
+</head>
+
+<body>
+  <section class="card">
+    <h1>Receita Mensal por Produto</h1>
+    <p>
+      Este exemplo usa <strong>interaction mode index</strong> para mostrar o valor de todos os datasets
+      no mesmo mes, mesmo quando o cursor nao esta exatamente em cima de uma linha especifica.
+    </p>
+
+    <div class="chart-wrap">
+      <canvas id="lineIndexChart"></canvas>
+    </div>
+
+    <div class="actions" id="actions"></div>
+    <div class="note" id="note"></div>
+  </section>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    const CHART_COLORS = {
+      red: 'rgb(255, 99, 132)',
+      blue: 'rgb(54, 162, 235)',
+      green: 'rgb(75, 192, 192)',
+      orange: 'rgb(255, 159, 64)'
+    };
+
+    const MONTHS = [
+      'January', 'February', 'March', 'April', 'May', 'June',
+      'July', 'August', 'September', 'October', 'November', 'December'
+    ];
+
+    const Utils = {
+      CHART_COLORS,
+      months({ count }) {
+        return Array.from({ length: count }, (_, index) => MONTHS[index % MONTHS.length]);
+      },
+      rand(min, max) {
+        return Math.round(min + Math.random() * (max - min));
+      },
+      numbers({ count, min, max }) {
+        return Array.from({ length: count }, () => this.rand(min, max));
+      },
+      transparentize(color, opacity) {
+        return color.replace('rgb(', 'rgba(').replace(')', `, ${1 - opacity})`);
+      }
+    };
+
+    const DATA_COUNT = 7;
+    const NUMBER_CFG = { count: DATA_COUNT, min: 80, max: 220 };
+
+    const labels = Utils.months({ count: DATA_COUNT });
+    const data = {
+      labels: labels,
+      datasets: [
+        {
+          label: 'Produto A',
+          data: [120, 135, 128, 150, 162, 171, 180],
+          borderColor: Utils.CHART_COLORS.red,
+          backgroundColor: Utils.transparentize(Utils.CHART_COLORS.red, 0.5),
+          tension: 0.35,
+        },
+        {
+          label: 'Produto B',
+          data: [95, 108, 116, 124, 139, 148, 156],
+          borderColor: Utils.CHART_COLORS.blue,
+          backgroundColor: Utils.transparentize(Utils.CHART_COLORS.blue, 0.5),
+          tension: 0.35,
+        },
+        {
+          label: 'Produto C',
+          data: [70, 82, 94, 101, 113, 120, 133],
+          borderColor: Utils.CHART_COLORS.green,
+          backgroundColor: Utils.transparentize(Utils.CHART_COLORS.green, 0.5),
+          tension: 0.35,
+        }
+      ]
+    };
+
+    const config = {
+      type: 'line',
+      data: data,
+      options: {
+        responsive: true,
+        interaction: {
+          mode: 'index',
+          intersect: false,
+        },
+        plugins: {
+          legend: {
+            position: 'top',
+          },
+          title: {
+            display: true,
+            text: 'Chart.js Line Chart - interaction mode index'
+          }
+        },
+        scales: {
+          x: {
+            display: true,
+            title: {
+              display: true,
+              text: 'Meses'
+            }
+          },
+          y: {
+            display: true,
+            title: {
+              display: true,
+              text: 'Receita (mil EUR)'
+            },
+            suggestedMin: 50,
+            suggestedMax: 240
+          }
+        }
+      },
+    };
+
+    const chart = new Chart(document.getElementById('lineIndexChart'), config);
+
+    function updateNote(chartInstance) {
+      const totals = chartInstance.data.labels.map((_, index) => {
+        return chartInstance.data.datasets.reduce((sum, dataset) => sum + dataset.data[index], 0);
+      });
+      const bestIndex = totals.indexOf(Math.max(...totals));
+      document.getElementById('note').textContent =
+        `Com interaction mode index, ao apontar para um mes vês os 3 valores desse mes ao mesmo tempo. ` +
+        `No exemplo atual, o mes com maior receita combinada é ${chartInstance.data.labels[bestIndex]} (${totals[bestIndex]} mil EUR).`;
+    }
+
+    updateNote(chart);
+
+    const actions = [
+      {
+        name: 'Randomize',
+        handler(chartInstance) {
+          chartInstance.data.datasets.forEach(dataset => {
+            dataset.data = Utils.numbers(NUMBER_CFG);
+          });
+          chartInstance.update();
+          updateNote(chartInstance);
+        }
+      },
+      {
+        name: 'Reset',
+        handler(chartInstance) {
+          chartInstance.data.datasets[0].data = [120, 135, 128, 150, 162, 171, 180];
+          chartInstance.data.datasets[1].data = [95, 108, 116, 124, 139, 148, 156];
+          chartInstance.data.datasets[2].data = [70, 82, 94, 101, 113, 120, 133];
+          chartInstance.update();
+          updateNote(chartInstance);
+        }
+      }
+    ];
+
+    const actionsEl = document.getElementById('actions');
+    actions.forEach(action => {
+      const button = document.createElement('button');
+      button.textContent = action.name;
+      button.addEventListener('click', () => action.handler(chart));
+      actionsEl.appendChild(button);
+    });
+  </script>
+</body>
+
+</html>

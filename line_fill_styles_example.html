@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chart.js Line Chart - Fill Styles</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: sans-serif;
+      background: #eef2f7;
+      display: flex;
+      justify-content: center;
+      padding: 2rem 1rem;
+    }
+
+    .card {
+      width: 920px;
+      max-width: 100%;
+      background: #ffffff;
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+      padding: 1.25rem;
+    }
+
+    .chart-wrap {
+      position: relative;
+      height: 460px;
+    }
+  </style>
+</head>
+
+<body>
+  <section class="card">
+    <div class="chart-wrap">
+      <canvas id="lineFillStylesChart"></canvas>
+    </div>
+  </section>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    const CHART_COLORS = {
+      red: 'rgb(255, 99, 132)',
+      blue: 'rgb(54, 162, 235)',
+      orange: 'rgb(255, 159, 64)',
+      green: 'rgb(75, 192, 192)',
+      yellow: 'rgb(255, 205, 86)',
+      purple: 'rgb(153, 102, 255)',
+      grey: 'rgb(201, 203, 207)'
+    };
+
+    const MONTHS = [
+      'January', 'February', 'March', 'April', 'May', 'June',
+      'July', 'August', 'September', 'October', 'November', 'December'
+    ];
+
+    const Utils = {
+      CHART_COLORS,
+      months({ count }) {
+        return Array.from({ length: count }, (_, index) => MONTHS[index % MONTHS.length]);
+      },
+      numbers({ count, min, max }) {
+        return Array.from({ length: count }, () => Math.round(min + Math.random() * (max - min)));
+      }
+    };
+
+    const DATA_COUNT = 7;
+    const NUMBER_CFG = { count: DATA_COUNT, min: -100, max: 100 };
+
+    const labels = Utils.months({ count: DATA_COUNT });
+    const data = {
+      labels: labels,
+      datasets: [
+        {
+          label: 'Unfilled',
+          fill: false,
+          backgroundColor: Utils.CHART_COLORS.blue,
+          borderColor: Utils.CHART_COLORS.blue,
+          data: Utils.numbers(NUMBER_CFG),
+        }, {
+          label: 'Dashed',
+          fill: false,
+          backgroundColor: Utils.CHART_COLORS.green,
+          borderColor: Utils.CHART_COLORS.green,
+          borderDash: [5, 5],
+          data: Utils.numbers(NUMBER_CFG),
+        }, {
+          label: 'Filled',
+          backgroundColor: Utils.CHART_COLORS.red,
+          borderColor: Utils.CHART_COLORS.red,
+          data: Utils.numbers(NUMBER_CFG),
+          fill: true,
+        }
+      ]
+    };
+
+    const config = {
+      type: 'line',
+      data: data,
+      options: {
+        responsive: true,
+        plugins: {
+          title: {
+            display: true,
+            text: 'Chart.js Line Chart'
+          },
+        },
+        interaction: {
+          mode: 'index',
+          intersect: false
+        },
+        scales: {
+          x: {
+            display: true,
+            title: {
+              display: true,
+              text: 'Month'
+            }
+          },
+          y: {
+            display: true,
+            title: {
+              display: true,
+              text: 'Value'
+            }
+          }
+        }
+      },
+    };
+
+    new Chart(document.getElementById('lineFillStylesChart'), config);
+  </script>
+</body>
+
+</html>

@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chart.js Line Chart - Stepped Interpolation</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: sans-serif;
+      background: #eef2f7;
+      display: flex;
+      justify-content: center;
+      padding: 2rem 1rem;
+    }
+
+    .card {
+      width: 920px;
+      max-width: 100%;
+      background: #ffffff;
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+      padding: 1.25rem;
+    }
+
+    .chart-wrap {
+      position: relative;
+      height: 460px;
+    }
+
+    .actions {
+      margin-top: 1rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.6rem;
+    }
+
+    button {
+      border: 0;
+      border-radius: 8px;
+      padding: 0.55rem 0.95rem;
+      cursor: pointer;
+      background: #0f172a;
+      color: #ffffff;
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+
+    button:hover {
+      background: #1e293b;
+    }
+  </style>
+</head>
+
+<body>
+  <section class="card">
+    <div class="chart-wrap">
+      <canvas id="lineSteppedChart"></canvas>
+    </div>
+    <div class="actions" id="actions"></div>
+  </section>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    const CHART_COLORS = {
+      red: 'rgb(255, 99, 132)',
+      blue: 'rgb(54, 162, 235)',
+      orange: 'rgb(255, 159, 64)',
+      green: 'rgb(75, 192, 192)',
+      yellow: 'rgb(255, 205, 86)',
+      purple: 'rgb(153, 102, 255)',
+      grey: 'rgb(201, 203, 207)'
+    };
+
+    const Utils = {
+      CHART_COLORS,
+      numbers({ count, min, max }) {
+        return Array.from({ length: count }, () => Math.round(min + Math.random() * (max - min)));
+      }
+    };
+
+    const data = {
+      labels: ['Day 1', 'Day 2', 'Day 3', 'Day 4', 'Day 5', 'Day 6'],
+      datasets: [
+        {
+          label: 'Dataset',
+          data: Utils.numbers({ count: 6, min: -100, max: 100 }),
+          borderColor: Utils.CHART_COLORS.red,
+          fill: false,
+          stepped: true,
+        }
+      ]
+    };
+
+    const config = {
+      type: 'line',
+      data: data,
+      options: {
+        responsive: true,
+        interaction: {
+          intersect: false,
+          axis: 'x'
+        },
+        plugins: {
+          title: {
+            display: true,
+            text: (ctx) => 'Step ' + ctx.chart.data.datasets[0].stepped + ' Interpolation',
+          },
+          legend: {
+            position: 'top',
+          }
+        }
+      }
+    };
+
+    const actions = [
+      {
+        name: 'Step: false (default)',
+        handler: (chart) => {
+          chart.data.datasets.forEach(dataset => {
+            dataset.stepped = false;
+          });
+          chart.update();
+        }
+      },
+      {
+        name: 'Step: true',
+        handler: (chart) => {
+          chart.data.datasets.forEach(dataset => {
+            dataset.stepped = true;
+          });
+          chart.update();
+        }
+      },
+      {
+        name: 'Step: before',
+        handler: (chart) => {
+          chart.data.datasets.forEach(dataset => {
+            dataset.stepped = 'before';
+          });
+          chart.update();
+        }
+      },
+      {
+        name: 'Step: after',
+        handler: (chart) => {
+          chart.data.datasets.forEach(dataset => {
+            dataset.stepped = 'after';
+          });
+          chart.update();
+        }
+      },
+      {
+        name: 'Step: middle',
+        handler: (chart) => {
+          chart.data.datasets.forEach(dataset => {
+            dataset.stepped = 'middle';
+          });
+          chart.update();
+        }
+      }
+    ];
+
+    const chart = new Chart(document.getElementById('lineSteppedChart'), config);
+
+    const actionsEl = document.getElementById('actions');
+    actions.forEach(action => {
+      const button = document.createElement('button');
+      button.textContent = action.name;
+      button.addEventListener('click', () => action.handler(chart));
+      actionsEl.appendChild(button);
+    });
+  </script>
+</body>
+
+</html>
