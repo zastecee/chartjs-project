@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chart.js Pie Chart</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: sans-serif;
+      background: #eef2f7;
+      display: flex;
+      justify-content: center;
+      padding: 2rem 1rem;
+    }
+
+    .card {
+      width: 920px;
+      max-width: 100%;
+      background: #ffffff;
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+      padding: 1.25rem;
+    }
+
+    .chart-wrap {
+      position: relative;
+      height: 460px;
+    }
+
+    .actions {
+      margin-top: 1rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.6rem;
+    }
+
+    button {
+      border: 0;
+      border-radius: 8px;
+      padding: 0.55rem 0.95rem;
+      cursor: pointer;
+      background: #0f172a;
+      color: #ffffff;
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+
+    button:hover {
+      background: #1e293b;
+    }
+  </style>
+</head>
+
+<body>
+  <section class="card">
+    <div class="chart-wrap">
+      <canvas id="pieChart"></canvas>
+    </div>
+    <div class="actions" id="actions"></div>
+  </section>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    const CHART_COLORS = {
+      red: 'rgb(255, 99, 132)',
+      orange: 'rgb(255, 159, 64)',
+      yellow: 'rgb(255, 205, 86)',
+      green: 'rgb(75, 192, 192)',
+      blue: 'rgb(54, 162, 235)',
+      purple: 'rgb(153, 102, 255)',
+      grey: 'rgb(201, 203, 207)'
+    };
+
+    const Utils = {
+      CHART_COLORS,
+      numbers({ count, min, max }) {
+        return Array.from({ length: count }, () => Math.round(min + Math.random() * (max - min)));
+      },
+      rand(min, max) {
+        return Math.round(min + Math.random() * (max - min));
+      }
+    };
+
+    const DATA_COUNT = 5;
+    const NUMBER_CFG = { count: DATA_COUNT, min: 0, max: 100 };
+
+    const data = {
+      labels: ['Red', 'Orange', 'Yellow', 'Green', 'Blue'],
+      datasets: [
+        {
+          label: 'Dataset 1',
+          data: Utils.numbers(NUMBER_CFG),
+          backgroundColor: Object.values(Utils.CHART_COLORS),
+        }
+      ]
+    };
+
+    const config = {
+      type: 'pie',
+      data: data,
+      options: {
+        responsive: true,
+        plugins: {
+          legend: {
+            position: 'top',
+          },
+          title: {
+            display: true,
+            text: 'Chart.js Pie Chart'
+          }
+        }
+      },
+    };
+
+    const actions = [
+      {
+        name: 'Randomize',
+        handler(chart) {
+          chart.data.datasets.forEach(dataset => {
+            dataset.data = Utils.numbers({ count: chart.data.labels.length, min: 0, max: 100 });
+          });
+          chart.update();
+        }
+      },
+      {
+        name: 'Add Dataset',
+        handler(chart) {
+          const chartData = chart.data;
+          const newDataset = {
+            label: 'Dataset ' + (chartData.datasets.length + 1),
+            backgroundColor: [],
+            data: [],
+          };
+
+          for (let i = 0; i < chartData.labels.length; i++) {
+            newDataset.data.push(Utils.numbers({ count: 1, min: 0, max: 100 })[0]);
+
+            const colorIndex = i % Object.keys(Utils.CHART_COLORS).length;
+            newDataset.backgroundColor.push(Object.values(Utils.CHART_COLORS)[colorIndex]);
+          }
+
+          chart.data.datasets.push(newDataset);
+          chart.update();
+        }
+      },
+      {
+        name: 'Add Data',
+        handler(chart) {
+          const chartData = chart.data;
+          if (chartData.datasets.length > 0) {
+            chartData.labels.push('data #' + (chartData.labels.length + 1));
+
+            for (let index = 0; index < chartData.datasets.length; ++index) {
+              chartData.datasets[index].data.push(Utils.rand(0, 100));
+            }
+
+            chart.update();
+          }
+        }
+      },
+      {
+        name: 'Remove Dataset',
+        handler(chart) {
+          chart.data.datasets.pop();
+          chart.update();
+        }
+      },
+      {
+        name: 'Remove Data',
+        handler(chart) {
+          chart.data.labels.splice(-1, 1);
+
+          chart.data.datasets.forEach(dataset => {
+            dataset.data.pop();
+          });
+
+          chart.update();
+        }
+      }
+    ];
+
+    const chart = new Chart(document.getElementById('pieChart'), config);
+
+    const actionsEl = document.getElementById('actions');
+    actions.forEach(action => {
+      const button = document.createElement('button');
+      button.textContent = action.name;
+      button.addEventListener('click', () => action.handler(chart));
+      actionsEl.appendChild(button);
+    });
+  </script>
+</body>
+
+</html>

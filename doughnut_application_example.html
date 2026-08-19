@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="pt">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Aplicacao: Distribuicao de Orcamento</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: sans-serif;
+      background: #eef2f7;
+      display: flex;
+      justify-content: center;
+      padding: 2rem 1rem;
+      color: #111827;
+    }
+
+    .card {
+      width: 980px;
+      max-width: 100%;
+      background: #ffffff;
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+      padding: 1.25rem;
+    }
+
+    h1 {
+      margin: 0 0 0.25rem;
+      font-size: 1.2rem;
+    }
+
+    p {
+      margin: 0 0 1rem;
+      line-height: 1.45;
+      color: #374151;
+    }
+
+    .chart-wrap {
+      position: relative;
+      height: 460px;
+    }
+
+    .center-stat {
+      position: absolute;
+      inset: 50% auto auto 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+      pointer-events: none;
+      color: #111827;
+    }
+
+    .center-stat .value {
+      display: block;
+      font-size: 1.45rem;
+      font-weight: 700;
+      line-height: 1;
+    }
+
+    .center-stat .label {
+      display: block;
+      margin-top: 0.25rem;
+      font-size: 0.82rem;
+      color: #6b7280;
+    }
+
+    .actions {
+      margin-top: 1rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.6rem;
+    }
+
+    button {
+      border: 0;
+      border-radius: 8px;
+      padding: 0.55rem 0.95rem;
+      cursor: pointer;
+      background: #0f172a;
+      color: #ffffff;
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+
+    button:hover {
+      background: #1e293b;
+    }
+
+    .note {
+      margin-top: 1rem;
+      padding: 0.85rem 1rem;
+      border-radius: 10px;
+      background: #f8fafc;
+      border: 1px solid #e5e7eb;
+      font-size: 0.95rem;
+      line-height: 1.45;
+      color: #1f2937;
+    }
+  </style>
+</head>
+
+<body>
+  <section class="card">
+    <h1>Distribuicao de Orcamento Mensal</h1>
+    <p>
+      Exemplo real: um doughnut chart mostra como um total de orcamento se reparte entre areas da empresa.
+      Isto e util para ver rapidamente que parte do total vai para cada categoria.
+    </p>
+
+    <div class="chart-wrap">
+      <canvas id="doughnutApplicationChart"></canvas>
+      <div class="center-stat" id="centerStat">
+        <span class="value" id="centerValue">100%</span>
+        <span class="label" id="centerLabel">Total do orcamento</span>
+      </div>
+    </div>
+
+    <div class="actions" id="actions"></div>
+    <div class="note" id="note"></div>
+  </section>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+  <script>
+    const CHART_COLORS = {
+      red: 'rgb(255, 99, 132)',
+      orange: 'rgb(255, 159, 64)',
+      yellow: 'rgb(255, 205, 86)',
+      green: 'rgb(75, 192, 192)',
+      blue: 'rgb(54, 162, 235)',
+      purple: 'rgb(153, 102, 255)',
+      grey: 'rgb(201, 203, 207)'
+    };
+
+    const Utils = {
+      CHART_COLORS,
+      numbers({ count, min, max }) {
+        return Array.from({ length: count }, () => Math.round(min + Math.random() * (max - min)));
+      },
+      rand(min, max) {
+        return Math.round(min + Math.random() * (max - min));
+      }
+    };
+
+    const labels = ['Marketing', 'Vendas', 'Operacoes', 'Tecnologia', 'RH'];
+    const data = {
+      labels,
+      datasets: [
+        {
+          label: 'Orcamento (mil EUR)',
+          data: [32, 24, 18, 16, 10],
+          backgroundColor: Object.values(Utils.CHART_COLORS),
+        }
+      ]
+    };
+
+    const config = {
+      type: 'doughnut',
+      data,
+      options: {
+        responsive: true,
+        plugins: {
+          legend: {
+            position: 'top',
+          },
+          title: {
+            display: true,
+            text: 'Aplicacao: Distribuicao de Orcamento por Area'
+          },
+          tooltip: {
+            callbacks: {
+              label(context) {
+                const dataset = context.dataset.data;
+                const total = dataset.reduce((sum, value) => sum + value, 0);
+                const value = context.parsed;
+                const percent = ((value / total) * 100).toFixed(1);
+                return `${context.label}: ${value} mil EUR (${percent}%)`;
+              }
+            }
+          }
+        }
+      },
+      plugins: [ChartDataLabels],
+    };
+
+    Chart.register(ChartDataLabels);
+
+    ChartDataLabels.defaults.color = '#111827';
+    ChartDataLabels.defaults.font = {
+      weight: '700',
+      size: 12,
+    };
+    ChartDataLabels.defaults.anchor = 'end';
+    ChartDataLabels.defaults.align = 'end';
+    ChartDataLabels.defaults.offset = 6;
+    ChartDataLabels.defaults.clamp = true;
+
+    ChartDataLabels.defaults.formatter = (value, context) => {
+      const dataset = context.chart.data.datasets[context.datasetIndex].data;
+      const total = dataset.reduce((sum, item) => sum + item, 0);
+      const percent = ((value / total) * 100).toFixed(1);
+      return `${percent}%`;
+    };
+
+    const chart = new Chart(document.getElementById('doughnutApplicationChart'), config);
+
+    function updateNote(chartInstance) {
+      const totals = chartInstance.data.datasets[0].data;
+      const totalBudget = totals.reduce((sum, value) => sum + value, 0);
+      const largestIndex = totals.indexOf(Math.max(...totals));
+      const largestShare = ((totals[largestIndex] / totalBudget) * 100).toFixed(1);
+
+      document.getElementById('centerValue').textContent = `${largestShare}%`;
+      document.getElementById('centerLabel').textContent = chartInstance.data.labels[largestIndex];
+
+      document.getElementById('note').textContent =
+        `Total do orcamento: ${totalBudget} mil EUR. A maior fatia pertence a ${chartInstance.data.labels[largestIndex]} com ${totals[largestIndex]} mil EUR (${largestShare}%). ` +
+        'Este tipo de grafico e usado quando o importante e ver partes de um todo, nao comparar valores exatos em eixos.';
+    }
+
+    updateNote(chart);
+
+    const actions = [
+      {
+        name: 'Randomize',
+        handler(chartInstance) {
+          chartInstance.data.datasets[0].data = Utils.numbers({ count: chartInstance.data.labels.length, min: 5, max: 40 });
+          chartInstance.update();
+          updateNote(chartInstance);
+        }
+      },
+      {
+        name: 'Reset',
+        handler(chartInstance) {
+          chartInstance.data.datasets[0].data = [32, 24, 18, 16, 10];
+          chartInstance.update();
+          updateNote(chartInstance);
+        }
+      }
+    ];
+
+    const actionsEl = document.getElementById('actions');
+    actions.forEach(action => {
+      const button = document.createElement('button');
+      button.textContent = action.name;
+      button.addEventListener('click', () => action.handler(chart));
+      actionsEl.appendChild(button);
+    });
+  </script>
+</body>
+
+</html>
