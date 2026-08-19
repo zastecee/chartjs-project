@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="pt">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Aplicacao: Consumo de Energia com Interpolacao</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: sans-serif;
+      background: #eef2f7;
+      display: flex;
+      justify-content: center;
+      padding: 2rem 1rem;
+      color: #111827;
+    }
+
+    .card {
+      width: 980px;
+      max-width: 100%;
+      background: #ffffff;
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+      padding: 1.25rem;
+    }
+
+    h1 {
+      margin: 0 0 0.25rem;
+      font-size: 1.2rem;
+    }
+
+    p {
+      margin: 0 0 1rem;
+      line-height: 1.45;
+      color: #374151;
+    }
+
+    .chart-wrap {
+      position: relative;
+      height: 460px;
+    }
+
+    .insight {
+      margin-top: 1rem;
+      padding: 0.85rem 1rem;
+      border-radius: 10px;
+      background: #f8fafc;
+      border: 1px solid #e5e7eb;
+      font-size: 0.95rem;
+      line-height: 1.45;
+      color: #1f2937;
+    }
+  </style>
+</head>
+
+<body>
+  <section class="card">
+    <h1>Consumo Diario de Energia em Fabrica</h1>
+    <p>
+      Exemplo real: comparar uma serie com interpolacao monotone, interpolacao cubica padrao e linear,
+      inclusive com um dia sem leitura (NaN).
+    </p>
+
+    <div class="chart-wrap">
+      <canvas id="lineCubicApplicationChart"></canvas>
+    </div>
+
+    <div class="insight" id="insight"></div>
+  </section>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    const CHART_COLORS = {
+      red: 'rgb(255, 99, 132)',
+      blue: 'rgb(54, 162, 235)',
+      green: 'rgb(75, 192, 192)'
+    };
+
+    const labels = [
+      'Dia 1', 'Dia 2', 'Dia 3', 'Dia 4', 'Dia 5', 'Dia 6',
+      'Dia 7', 'Dia 8', 'Dia 9', 'Dia 10', 'Dia 11', 'Dia 12', 'Dia 13'
+    ];
+
+    // Dia 7 sem leitura do sensor (NaN)
+    const datapoints = [95, 104, 104, 132, 132, 168, NaN, 185, 164, 170, 158, 161, 176];
+
+    const data = {
+      labels,
+      datasets: [
+        {
+          label: 'Cubic interpolation (monotone)',
+          data: datapoints,
+          borderColor: CHART_COLORS.red,
+          fill: false,
+          cubicInterpolationMode: 'monotone',
+          tension: 0.4
+        },
+        {
+          label: 'Cubic interpolation',
+          data: datapoints,
+          borderColor: CHART_COLORS.blue,
+          fill: false,
+          tension: 0.4
+        },
+        {
+          label: 'Linear interpolation (default)',
+          data: datapoints,
+          borderColor: CHART_COLORS.green,
+          fill: false
+        }
+      ]
+    };
+
+    const config = {
+      type: 'line',
+      data,
+      options: {
+        responsive: true,
+        plugins: {
+          title: {
+            display: true,
+            text: 'Aplicacao: Tendencia de Consumo com Interpolacao'
+          },
+        },
+        interaction: {
+          intersect: false,
+        },
+        scales: {
+          x: {
+            display: true,
+            title: {
+              display: true,
+              text: 'Dias'
+            }
+          },
+          y: {
+            display: true,
+            title: {
+              display: true,
+              text: 'kWh'
+            },
+            suggestedMin: 80,
+            suggestedMax: 210
+          }
+        }
+      },
+    };
+
+    new Chart(document.getElementById('lineCubicApplicationChart'), config);
+
+    const validValues = datapoints.filter(value => Number.isFinite(value));
+    const average = (validValues.reduce((sum, value) => sum + value, 0) / validValues.length).toFixed(1);
+    const peak = Math.max(...validValues);
+
+    document.getElementById('insight').textContent =
+      `Media do periodo: ${average} kWh. Pico observado: ${peak} kWh. ` +
+      'Monotone ajuda a suavizar a curva sem criar oscilacoes artificiais perto de picos e vales.';
+  </script>
+</body>
+
+</html>
